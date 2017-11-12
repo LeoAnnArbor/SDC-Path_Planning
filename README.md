@@ -5,8 +5,32 @@ Self-Driving Car Engineer Nanodegree Program
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases).
 
 ### Goals
-In this project your goal is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. You will be provided the car's localization and sensor fusion data, there is also a sparse map list of waypoints around the highway. The car should try to go as close as possible to the 50 MPH speed limit, which means passing slower traffic when possible, note that other cars will try to change lanes too. The car should avoid hitting other cars at all cost as well as driving inside of the marked road lanes at all times, unless going from one lane to another. The car should be able to make one complete loop around the 6946m highway. Since the car is trying to go 50 MPH, it should take a little over 5 minutes to complete 1 loop. Also the car should not experience total acceleration over 10 m/s^2 and jerk that is greater than 50 m/s^3.
+In this project our goal is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. Car's localization, sensor fusion data of detected other cars as well as a sparse map list of waypoints around the highway are provided by the simulator. The goal is to maneuver the car safely around the track with speed as close as possible to the limit 50 MPH. This implies that the car need to be able to pass slower traffic when possible. It should also be noted that other cars will try to change lanes as well. The car should avoid hitting other cars at all cost as well as driving inside of the marked road lanes at all times, unless going from one lane to another. The car should be able to make one complete loop around the 6946m highway. Since the car is trying to go 50 MPH, it should take a little over 5 minutes to complete 1 loop. Also the car should not experience total acceleration over 10 m/s^2 and jerk that is greater than 50 m/s^3.
 
+### Model Documentation
+Models used for this project are described in detail below:
+
+1. Going around the track smoothly
+    - We first generate five sparse points in Frenet coordinates. Specifically, we first directly use the last two points in the previous path (which we'll include as the first section of the new path). Then we include three points in our target lane (constant d) spaced 30m apart.
+    - Next, we generate a spline through those points using the `spline.h` library. The number of desired points `N` are calculated from the formula : `N = 30.0/(0.02*ref_vel)`. It should also be noted that the desired spline points are generated in vehicle's frame. We then add points on the spline (our path points) to `next_x_vals, next_y_vals`.`ref_vel` the speed in SI unit we want our car to drive at.
+
+2. Staying in a lane
+    - Implementation: We keep the `d` for our path constant. Specifically, we set `d = 2+4*lane`, since it is given that a lane is 4m wide and we'd like to stay in the center of the lane because that seems safest.
+
+3. Avoid exceeding maximum acceleration or jerk
+    - We increase or decrease the velocity gradually with roughly 0.5 MPH/s until it reaches our target velocity.
+
+4. Avoid collision with cars in lane
+    - Check if our car is close to the car in front of us in the same lane.
+    - If it is, decelerate the car to avoid collision.
+
+5. Change lanes
+    - Determine whether we should change lanes.
+        - Check if the car is close to the car in front of us in our lane. 
+    - Determine whether it's safe to change lanes, and if so which lane we should switch to.
+        - If the car in a lane is close to us in the `s` direction, it is not safe to switch to that lane.
+        - We only switch between the three lanes given and only switch to adjacent lanes.
+   
 #### The map of the highway is in data/highway_map.txt
 Each waypoint in the list contains  [x,y,s,dx,dy] values. x and y are the waypoint's map coordinate position, the s value is the distance along the road to get to that waypoint in meters, the dx and dy values define the unit normal vector pointing outward of the highway loop.
 
